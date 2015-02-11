@@ -115,8 +115,10 @@ function job_admin_form($form, &$form_state) {
  */
 function job_form_validate($form, &$form_state) {
   $mail = $form_state['values']['mail'];
+  $values = array('@mail' => '"'.$mail.'"');
+
   if (!valid_email_address($mail)) {
-    form_set_error('mail', t('The entered e-mail address "' . $mail . '" is not valid.'));
+    form_set_error('mail', t('The entered e-mail address @mail is not valid.', $values));
   }
 }
 
@@ -125,10 +127,11 @@ function job_form_validate($form, &$form_state) {
  */
 function job_admin_form_validate($form, &$form_state) {
   $mail = $form_state['values']['test_contact_notify_address'];
+  $values = array('@mail' => '"'.$mail.'"');
 
   if ($mail!=''){
     if (!valid_email_address($mail)) {
-      form_set_error('test_contact_notify_address', t('The entered e-mail address "' . $mail . '" is not valid.'));
+      form_set_error('test_contact_notify_address', t('The entered e-mail address @mail is not valid.', $values));
     }
   }
 
