@@ -1,0 +1,208 @@
+<?php
+
+/**
+ * @file
+ * Job Module
+ */
+
+/**
+ * Implements hook_permission).
+ */
+function job_permission() {
+  return array(
+    'job_manage_applicants' => array(
+      'title' => t('Manage applicants'),
+      'description' => t('Details of the different applicants.'),
+    ),
+  );
+}
+
+/**
+ * Implements hook_menu().
+ */
+function job_menu() {
+  $items = array();
+  //this creates a URL that will call this form at "job/apply"
+  $items['job/apply'] = array(
+    // page title
+    'title' => t('Apply for a job'),
+    'description' => t('Job application form'),
+    'type' => MENU_NORMAL_ITEM,
+    // this is the function that will be called when the page is accessed.  for a form, use drupal_get_form
+    'page callback' => 'drupal_get_form',
+    // put the name of the form here
+    'page arguments' => array('job_form'),
+    'access callback' => TRUE,
+  );
+  $items['admin/config/test'] = array(
+    // page title
+    'title' => t('Job module settings'),
+    'description' => t('Module settings for Job'),
+    'type' => MENU_NORMAL_ITEM,
+    // this is the function that will be called when the page is accessed.  for a form, use drupal_get_form
+    'page callback' => 'drupal_get_form',
+    // put the name of the form here
+    'page arguments' => array('job_admin_form'),
+    'access arguments' => array('job_manage_applicants'),
+  );      
+  return $items;
+}
+
+/**
+ * Implements hook_form().
+ */
+function job_form($form, &$form_state) {
+
+  $form['firstname'] = array(
+    // you can find a list of available types in the form api
+    '#type' => 'textfield',
+    '#title' => t('My first name'),
+    // make this field required
+    '#required' => TRUE,
+  );
+
+  $form['lastname'] = array(
+    '#type' => 'textfield',
+    '#title' => t('My last name'),
+    '#required' => TRUE,
+  );
+
+  $form['mail'] = array(
+    '#type' => 'textfield',
+    '#title' => t('My e-mail address'),
+    '#attributes' => array(
+      'placeholder' => 'me@example.com',
+      'type' => "email",
+    ),
+    '#required' => TRUE,
+  );
+
+  $form['motivation'] = array(
+    '#type' => 'textarea',
+    '#title' => t('My motivation'),
+    '#maxlength' => 500,
+    '#required' => TRUE,
+  );
+
+  $form['submit_button'] = array(
+    '#type' => 'submit',
+    '#value' => t('Send'),
+  );
+
+  return $form;
+}
+
+/**
+ * Administration form for Job module().
+ */
+function job_admin_form($form, &$form_state) {
+
+  $form['test_contact_notify_address'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Notification e-mail address'),
+    '#attributes' => array(
+      'placeholder' => 'me@example.com',
+      'type' => "email",
+    ),
+    '#default_value' => variable_get('test_contact_notify_address', ''),
+  );
+
+  return system_settings_form($form);
+}
+
+/**
+ * Implements hook_form_validate().
+ */
+function job_form_validate($form, &$form_state) {
+  $mail = $form_state['values']['mail'];
+  if (!valid_email_address($mail)) {
+    form_set_error('mail', t('The entered e-mail address "' . $mail . '" is not valid.'));
+  }
+}
+
+/**
+ * Implements hook_form_validate().
+ */
+function job_admin_form_validate($form, &$form_state) {
+  $mail = $form_state['values']['test_contact_notify_address'];
+
+  if ($mail!=''){
+    if (!valid_email_address($mail)) {
+      form_set_error('test_contact_notify_address', t('The entered e-mail address "' . $mail . '" is not valid.'));
+    }
+  }
+
+}
+
+/**
+ * Submission handler for job_form -> Insert into database
+ *
+ * Implements hook_form_submit().
+ *
+ */
+function job_form_submit($form, &$form_state) {
+  global $language;
+  $lang_name = $language->language;
+
+  $unixdate = date('U');
+
+  $notify_email = variable_get('test_contact_notify_address');
+
+  $jf_id = db_insert('job_applicants')->fields(array(
+      'firstname' => $form_state['values']['firstname'],
+      'lastname' => $form_state['values']['lastname'],
+      'mail' => $form_state['values']['mail'],
+      'motivation' => $form_state['values']['motivation'],
+      'language' => strtoupper($lang_name),
+      'submitted' => $unixdate,
+    ))->execute();
+
+  if ($notify_email != ''){
+    drupal_mail('job', 'job_email', $notify_email, language_default());
+  }
+  
+  drupal_set_message(t('Thanks for applying!'));
+  $form_state['redirect'] = '';
+}
+
+/**
+ * Implements hook_mail().
+ */
+function job_mail($key, &$message, $params) {
+  switch ($key) {
+    case 'job_email':
+      $message['subject'] = t('New applicant');
+      $message['body'][] = 'Mail';
+    break;
+  }
+
+}
+
+
+/**
+ * Implements hook_block_info().
+ */
+function job_block_info() {
+  // This example comes from node.module.
+  $blocks['job'] = array(
+    'info' => t('Job Promo Block'),
+  );
+
+  return $blocks;
+}
+
+/**
+ * Implements hook_block_view().
+ */
+function job_block_view($delta = '') {
+  // This example is adapted from node.module.
+  $block = array();
+
+  switch ($delta) {
+    case 'job':
+      $block['subject'] = t('Jobs! Apply Now!');
+      $block['content'] = t('Lorem ipsum doler amet');
+      break;
+  }
+  return $block;
+}
