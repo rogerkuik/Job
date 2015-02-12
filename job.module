@@ -22,9 +22,13 @@ function job_variable_info($options){
  */
 function job_permission() {
   return array(
+    'job_apply' => array(
+      'title' => t('Apply for a job'),
+      'description' => t('Can apply for a job.'),      
+    ),
     'job_manage_applicants' => array(
       'title' => t('Manage applicants'),
-      'description' => t('Details of the different applicants.'),
+      'description' => t('See submits of the applicants.'),
     ),
   );
 }
@@ -48,11 +52,13 @@ function job_menu() {
   );
   //this creates a URL that will call this form at "job/applicants/%"
   $items['job/applicants/%'] = array(
-    // page title
-    'title' => t('Applicant'),
-    'description' => t('Application details'),
-    //=> MENU_CALLBACK,
-  );  
+    'title' => t('View applicant'),
+    'page callback' => 'job_view_applicant',
+    'page arguments' => array(2),
+    'access arguments' => array('job_manage_applicants'),
+    'type' => MENU_CALLBACK,
+  );
+  //this creates a URL that will give you the config page"
   $items['admin/config/test'] = array(
     // page title
     'title' => t('Job module settings'),
@@ -196,6 +202,33 @@ function job_mail($key, &$message, $params) {
       $message['body'][] = 'Mail';
       break;
   }
+}
+
+/**
+ * Implements hook_theme().
+ */
+function job_theme() {
+  return array(
+    'theme_job_applicant' => array(
+      'variables' => array(
+        'firstname' => NULL,
+        'lastname' => NULL,
+        'mail' => NULL,
+        'motivation' => NULL,
+        'submitted' => NULL,
+      ),
+      'template' => 'templates/job_applicant',
+    ),
+  );
+}
+
+function job_view_applicant($jf_id) {
+  $result = db_query("SELECT * FROM {job_applicants} WHERE id > :jf_id", array(
+    ':jf_id' => $jf_id,
+  ));
+  $applicant = $result->fetchAssoc();
+
+  return theme('theme_job_applicant', $applicant);
 }
 
 /**
