@@ -5,6 +5,18 @@
  * Job Module
  */
 
+
+/**
+ * Implements hook_variable_info(). variabele module installeren
+ */
+function job_variable_info($options){
+	$variables['test_contact_notify_address'] = array(
+		'title' => t('Notify email'),
+		'localized' => TRUE,
+	);
+	return $variables;
+}
+
 /**
  * Implements hook_permission).
  */
@@ -34,6 +46,13 @@ function job_menu() {
     'page arguments' => array('job_form'),
     'access callback' => TRUE,
   );
+  //this creates a URL that will call this form at "job/applicants/%"
+  $items['job/applicants/%'] = array(
+    // page title
+    'title' => t('Applicant'),
+    'description' => t('Application details'),
+    //=> MENU_CALLBACK,
+  );  
   $items['admin/config/test'] = array(
     // page title
     'title' => t('Job module settings'),
@@ -164,7 +183,7 @@ function job_form_submit($form, &$form_state) {
   }
 
   drupal_set_message(t('Thanks for applying!'));
-  $form_state['redirect'] = '';
+  $form_state['redirect'] = ''; //drupal_goto('<front>');
 }
 
 /**

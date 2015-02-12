@@ -54,3 +54,10 @@ function job_schema() {
   return $schema;
 }
 
+/*
+ *
+*/
+function job_uninstall(){
+	//varaibele ununstallen of bedrijfs of klantprefix in foreach loop
+	}
+
