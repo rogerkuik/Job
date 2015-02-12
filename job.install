@@ -30,9 +30,9 @@ function job_schema() {
         'default' => '',
       ),
       'motivation' => array(
-        'type' => 'text',
+        'type' => 'varchar',
         'not null' => TRUE,
-        'size' => 'big'
+        'length' => '500'
         'default' => '',
       ),
       'language' => array(
