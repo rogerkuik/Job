@@ -32,10 +32,11 @@ function job_schema() {
       'motivation' => array(
         'type' => 'text',
         'not null' => TRUE,
+        'size' => 'big'
         'default' => '',
       ),
       'language' => array(
-        'type' => 'char',
+        'type' => 'varchar',
         'length' => 2,
         'not null' => TRUE,
         'default' => '',
