@@ -3,4 +3,6 @@ description = Form for recruiting.
 core = 7.x
 version = 7.x-1.0
 
+dependencies[] = variable
+dependencies[] = i18n_variable
 configure = admin/config/test

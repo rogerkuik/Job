@@ -1,8 +1,8 @@
 <?php
 
 /**
- * Implements hook_schema().
- */
+  * Implements hook_schema().
+  */
 function job_schema() {
   $schema['job_applicants'] = array(
     'fields' => array(
@@ -32,7 +32,6 @@ function job_schema() {
       'motivation' => array(
         'type' => 'text',
         'not null' => TRUE,
-        'default' => '',
       ),
       'language' => array(
         'type' => 'varchar',
@@ -53,10 +52,18 @@ function job_schema() {
   return $schema;
 }
 
-/*
- *
-*/
-function job_uninstall(){
-	//varaibele ununstallen of bedrijfs of klantprefix in foreach loop
-	}
 
+/**
+  * Implementation of hook_install().
+  */
+function job_install() {
+  variable_set('test_contact_notify_address', '');
+}
+
+/**
+  * Implementation of hook_uninstall().
+  */
+function job_uninstall(){
+	//variabelen uninstallen of via bedrijfs of klantprefix in foreach loop
+  variable_del('test_contact_notify_address');
+}

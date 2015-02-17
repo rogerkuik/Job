@@ -7,12 +7,14 @@
 
 
 /**
- * Implements hook_variable_info(). variabele module installeren
+ * Implements hook_variable_info().
+ * Needs variable module
  */
 function job_variable_info($options){
 	$variables['test_contact_notify_address'] = array(
-		'title' => t('Notify email'),
-		'localized' => TRUE,
+    'title' => t('Notify email'),
+    'description' => t('Notification mail address'),
+		'localize' => TRUE,
 	);
 	return $variables;
 }
@@ -43,16 +45,17 @@ function job_menu() {
     // page title
     'title' => t('Apply for a job'),
     'description' => t('Job application form'),
-    'type' => MENU_NORMAL_ITEM,
     // this is the function that will be called when the page is accessed.  for a form, use drupal_get_form
     'page callback' => 'drupal_get_form',
     // put the name of the form here
     'page arguments' => array('job_form'),
-    'access callback' => TRUE,
+    'access arguments' => array('job_apply'),
+    'type' => MENU_NORMAL_ITEM,    
   );
-  //this creates a URL that will call this form at "job/applicants/%"
+  //this creates a URL that will call the applicants details at "job/applicants/%"
   $items['job/applicants/%'] = array(
     'title' => t('View applicant'),
+    'description' => t('View applicant details'),    
     'page callback' => 'job_view_applicant',
     'page arguments' => array(2),
     'access arguments' => array('job_manage_applicants'),
@@ -60,15 +63,12 @@ function job_menu() {
   );
   //this creates a URL that will give you the config page"
   $items['admin/config/test'] = array(
-    // page title
     'title' => t('Job module settings'),
-    'description' => t('Module settings for Job'),
-    'type' => MENU_NORMAL_ITEM,
-    // this is the function that will be called when the page is accessed.  for a form, use drupal_get_form
+    'description' => t('Module settings for Job module'),
     'page callback' => 'drupal_get_form',
-    // put the name of the form here
     'page arguments' => array('job_admin_form'),
     'access arguments' => array('job_manage_applicants'),
+    'type' => MENU_NORMAL_ITEM,    
   );
   return $items;
 }
@@ -82,8 +82,7 @@ function job_form($form, &$form_state) {
     // you can find a list of available types in the form api
     '#type' => 'textfield',
     '#title' => t('My first name'),
-    // make this field required
-    '#required' => TRUE,
+    '#required' => TRUE, // make this field required
   );
 
   $form['lastname'] = array(
@@ -105,7 +104,7 @@ function job_form($form, &$form_state) {
   $form['motivation'] = array(
     '#type' => 'textarea',
     '#title' => t('My motivation'),
-    '#maxlength' => 500,
+    '#maxlength' => 500, //gives drupal message when exceeded
     '#required' => TRUE,
   );
 
@@ -132,7 +131,7 @@ function job_admin_form($form, &$form_state) {
     '#default_value' => variable_get('test_contact_notify_address', ''),
   );
 
-  return system_settings_form($form);
+  return system_settings_form($form); //creates the admin form attributes save, cancel etc.
 }
 
 /**
@@ -171,16 +170,17 @@ function job_form_submit($form, &$form_state) {
   global $language;
   $lang_name = $language->language;
 
-  $unixdate = date('U');
+  $lang = substr($_SERVER['HTTP_ACCEPT_LANGUAGE'], 0, 2);
 
-  $notify_email = variable_get('test_contact_notify_address');
+  $unixdate = date('U');
+  $notify_email = variable_get_value('test_contact_notify_address');
 
   $jf_id = db_insert('job_applicants')->fields(array(
       'firstname' => $form_state['values']['firstname'],
       'lastname' => $form_state['values']['lastname'],
       'mail' => $form_state['values']['mail'],
       'motivation' => $form_state['values']['motivation'],
-      'language' => strtoupper($lang_name),
+      'language' => strtoupper($lang),
       'submitted' => $unixdate,
     ))->execute();
 
@@ -189,7 +189,7 @@ function job_form_submit($form, &$form_state) {
   }
 
   drupal_set_message(t('Thanks for applying!'));
-  $form_state['redirect'] = ''; //drupal_goto('<front>');
+  drupal_goto('<front>'); // $form_state['redirect'] = '';
 }
 
 /**
